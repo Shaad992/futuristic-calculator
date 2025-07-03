@@ -1,0 +1,188 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Futuristic Calculator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --glow-color: #00f0ff;
+      --background-color: #000;
+      --text-color: #00f0ff;
+    }
+    body {
+      margin: 0;
+      font-family: 'Orbitron', sans-serif;
+      background: var(--background-color);
+      color: var(--text-color);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .calculator {
+      border: 2px solid var(--glow-color);
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 0 0 30px var(--glow-color);
+      width: 340px;
+      background: #000000d6;
+    }
+    .clock-date {
+      text-align: center;
+      font-size: 1.2em;
+      margin-bottom: 10px;
+      color: var(--text-color);
+      text-shadow: 0 0 10px var(--glow-color);
+    }
+    .display {
+      background: #111;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      text-align: right;
+      font-size: 1.5em;
+      box-shadow: 0 0 10px var(--glow-color);
+      color: var(--text-color);
+      min-height: 60px;
+      word-wrap: break-word;
+    }
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    button {
+      padding: 15px;
+      font-size: 1em;
+      background: #111;
+      color: var(--text-color);
+      border: 2px solid var(--glow-color);
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 0 5px var(--glow-color);
+    }
+    .history {
+      margin-top: 10px;
+      font-size: 0.9em;
+      color: var(--text-color);
+      word-wrap: break-word;
+    }
+    .toggle-container {
+      text-align: right;
+      margin-top: -10px;
+      margin-bottom: 10px;
+    }
+    .toggle-multi {
+      appearance: none;
+      width: 40px;
+      height: 20px;
+      background: var(--glow-color);
+      border-radius: 10px;
+      position: relative;
+      cursor: pointer;
+    }
+    .toggle-multi::before {
+      content: '';
+      width: 16px;
+      height: 16px;
+      background: #000;
+      border-radius: 50%;
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      transition: 0.3s;
+    }
+    .toggle-multi:checked::before {
+      left: 22px;
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator">
+    <div class="clock-date">
+      <div id="clock"></div>
+      <div id="date"></div>
+    </div>
+    <div class="toggle-container">
+      <input type="checkbox" id="colorToggle" class="toggle-multi" />
+    </div>
+    <div class="display" id="display"></div>
+    <div class="buttons">
+      <button onclick="press('7')">7</button>
+      <button onclick="press('8')">8</button>
+      <button onclick="press('9')">9</button>
+      <button onclick="press('/')">/</button>
+      <button onclick="press('4')">4</button>
+      <button onclick="press('5')">5</button>
+      <button onclick="press('6')">6</button>
+      <button onclick="press('*')">*</button>
+      <button onclick="press('1')">1</button>
+      <button onclick="press('2')">2</button>
+      <button onclick="press('3')">3</button>
+      <button onclick="press('-')">-</button>
+      <button onclick="press('0')">0</button>
+      <button onclick="press('.')">.</button>
+      <button onclick="calculate()">=</button>
+      <button onclick="press('+')">+</button>
+      <button onclick="backspace()">⌫</button>
+      <button onclick="clearDisplay()">C</button>
+      <button onclick="press('%')">%</button>
+      <button onclick="press('Math.sqrt(')">√</button>
+      <button onclick="press('Math.sin(')">sin</button>
+      <button onclick="press('Math.cos(')">cos</button>
+      <button onclick="press('Math.tan(')">tan</button>
+      <button onclick="press('Math.log(')">log</button>
+    </div>
+    <div class="history" id="history"></div>
+  </div>
+  <script>
+    let display = document.getElementById('display');
+    let history = document.getElementById('history');
+    let expression = '';
+    function press(val) {
+      expression += val;
+      display.textContent = expression;
+    }
+    function clearDisplay() {
+      expression = '';
+      display.textContent = '';
+    }
+    function backspace() {
+      expression = expression.slice(0, -1);
+      display.textContent = expression;
+    }
+    function calculate() {
+      try {
+        const safeExp = expression.replace(/(\d+(\.\d+)?)%/g, '($1/100)');
+        let result = eval(safeExp);
+        display.textContent = result;
+        history.innerHTML = `${expression} = <strong>${result}</strong>`;
+        expression = result.toString();
+      } catch {
+        display.textContent = 'Error';
+        expression = '';
+      }
+    }
+    function updateClock() {
+      const now = new Date();
+      const time = now.toLocaleTimeString();
+      const date = now.toDateString();
+      document.getElementById('clock').textContent = time;
+      document.getElementById('date').textContent = date;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+    const colors = ['#00f0ff', '#ff00cc', '#00ff99', '#ffaa00', '#ff4444'];
+    let currentColor = 0;
+    const toggle = document.getElementById('colorToggle');
+    toggle.addEventListener('change', () => {
+      currentColor = (currentColor + 1) % colors.length;
+      document.documentElement.style.setProperty('--glow-color', colors[currentColor]);
+      document.documentElement.style.setProperty('--text-color', colors[currentColor]);
+    });
+  </script>
+</body>
+</html>
