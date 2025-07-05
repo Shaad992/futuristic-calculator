@@ -11,6 +11,7 @@
       --background-color: #000;
       --text-color: #00f0ff;
     }
+
     body {
       margin: 0;
       font-family: 'Orbitron', sans-serif;
@@ -18,14 +19,16 @@
       color: var(--text-color);
       display: flex;
       justify-content: center;
-      align-items: center;
-      height: 100vh;
-      overflow: hidden;
+      align-items: flex-start;
+      min-height: 100vh;
+      overflow-y: auto;
       position: relative;
+      padding: 30px 10px;
     }
+
     body::before {
       content: '';
-      position: absolute;
+      position: fixed;
       top: 0; left: 0;
       width: 200%;
       height: 200%;
@@ -35,6 +38,7 @@
       opacity: 0.1;
       z-index: 0;
     }
+
     @keyframes starMove {
       0% { transform: translate(0, 0); }
       100% { transform: translate(-100px, -100px); }
@@ -50,6 +54,7 @@
       position: relative;
       z-index: 1;
     }
+
     .clock-date {
       text-align: center;
       font-size: 1.2em;
@@ -57,6 +62,7 @@
       color: var(--text-color);
       text-shadow: 0 0 10px var(--glow-color);
     }
+
     .display {
       background: #111;
       padding: 20px;
@@ -69,11 +75,13 @@
       min-height: 60px;
       word-wrap: break-word;
     }
+
     .buttons {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 10px;
     }
+
     button {
       padding: 15px;
       font-size: 1em;
@@ -85,14 +93,17 @@
       box-shadow: 0 0 5px var(--glow-color);
       transition: transform 0.1s, background 0.3s;
     }
+
     button:hover {
       background: #222;
       transform: scale(1.05);
     }
+
     button:active {
       background: var(--glow-color);
       color: #000;
     }
+
     .history {
       margin-top: 15px;
       font-size: 0.9em;
@@ -101,6 +112,7 @@
       max-height: 80px;
       overflow-y: auto;
     }
+
     .powered-by {
       text-align: center;
       margin-top: 15px;
@@ -109,14 +121,17 @@
       text-shadow: 0 0 5px var(--glow-color);
       opacity: 0.8;
     }
+
     .powered-by span {
       font-weight: bold;
       color: var(--glow-color);
     }
+
     .toggle-container {
       text-align: right;
       margin-bottom: 10px;
     }
+
     .toggle-multi {
       appearance: none;
       width: 40px;
@@ -126,6 +141,7 @@
       position: relative;
       cursor: pointer;
     }
+
     .toggle-multi::before {
       content: '';
       width: 16px;
@@ -137,6 +153,7 @@
       left: 2px;
       transition: 0.3s;
     }
+
     .toggle-multi:checked::before {
       left: 22px;
     }
@@ -205,7 +222,6 @@
 
     function calculate() {
       try {
-        // Fix percentage logic
         let fixedExp = expression.replace(/(\d+(?:\.\d+)?)([-+])(\d+(?:\.\d+)?)%/g, (_, num1, op, num2) => {
           let base = parseFloat(num1);
           let percent = (base * parseFloat(num2)) / 100;
