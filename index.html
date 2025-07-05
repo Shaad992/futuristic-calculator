@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -21,14 +20,35 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
+      overflow: hidden;
+      position: relative;
     }
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, var(--glow-color) 1px, transparent 1px);
+      background-size: 20px 20px;
+      animation: starMove 30s linear infinite;
+      opacity: 0.1;
+      z-index: 0;
+    }
+    @keyframes starMove {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(-100px, -100px); }
+    }
+
     .calculator {
       border: 2px solid var(--glow-color);
       padding: 20px;
       border-radius: 20px;
       box-shadow: 0 0 30px var(--glow-color);
       width: 340px;
-      background: #000000d6;
+      background: #000000e0;
+      position: relative;
+      z-index: 1;
     }
     .clock-date {
       text-align: center;
@@ -63,16 +83,38 @@
       border-radius: 10px;
       cursor: pointer;
       box-shadow: 0 0 5px var(--glow-color);
+      transition: transform 0.1s, background 0.3s;
+    }
+    button:hover {
+      background: #222;
+      transform: scale(1.05);
+    }
+    button:active {
+      background: var(--glow-color);
+      color: #000;
     }
     .history {
-      margin-top: 10px;
+      margin-top: 15px;
       font-size: 0.9em;
       color: var(--text-color);
       word-wrap: break-word;
+      max-height: 80px;
+      overflow-y: auto;
+    }
+    .powered-by {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 0.85em;
+      color: var(--text-color);
+      text-shadow: 0 0 5px var(--glow-color);
+      opacity: 0.8;
+    }
+    .powered-by span {
+      font-weight: bold;
+      color: var(--glow-color);
     }
     .toggle-container {
       text-align: right;
-      margin-top: -10px;
       margin-bottom: 10px;
     }
     .toggle-multi {
@@ -130,42 +172,83 @@
       <button onclick="backspace()">⌫</button>
       <button onclick="clearDisplay()">C</button>
       <button onclick="press('%')">%</button>
-      <button onclick="press('Math.sqrt(')">√</button>
-      <button onclick="press('Math.sin(')">sin</button>
-      <button onclick="press('Math.cos(')">cos</button>
-      <button onclick="press('Math.tan(')">tan</button>
-      <button onclick="press('Math.log(')">log</button>
+      <button onclick="applyFunc('sqrt')">√</button>
+      <button onclick="applyFunc('sin')">sin</button>
+      <button onclick="applyFunc('cos')">cos</button>
+      <button onclick="applyFunc('tan')">tan</button>
+      <button onclick="applyFunc('log')">log</button>
     </div>
     <div class="history" id="history"></div>
+    <div class="powered-by">⚡ Powered by <span>ShAAd</span></div>
   </div>
+
   <script>
     let display = document.getElementById('display');
     let history = document.getElementById('history');
     let expression = '';
+    let historyList = [];
+
     function press(val) {
       expression += val;
       display.textContent = expression;
     }
+
     function clearDisplay() {
       expression = '';
       display.textContent = '';
     }
+
     function backspace() {
       expression = expression.slice(0, -1);
       display.textContent = expression;
     }
+
     function calculate() {
       try {
-        const safeExp = expression.replace(/(\d+(\.\d+)?)%/g, '($1/100)');
-        let result = eval(safeExp);
+        // Fix percentage logic
+        let fixedExp = expression.replace(/(\d+(?:\.\d+)?)([-+])(\d+(?:\.\d+)?)%/g, (_, num1, op, num2) => {
+          let base = parseFloat(num1);
+          let percent = (base * parseFloat(num2)) / 100;
+          return `${base}${op}${percent}`;
+        });
+        fixedExp = fixedExp.replace(/(\d+(\.\d+)?)%/g, '($1/100)');
+
+        let result = eval(fixedExp);
+        result = +result.toFixed(8);
         display.textContent = result;
-        history.innerHTML = `${expression} = <strong>${result}</strong>`;
+        historyList.unshift(`${expression} = <strong>${result}</strong>`);
+        history.innerHTML = historyList.slice(0, 5).join('<br>');
         expression = result.toString();
       } catch {
         display.textContent = 'Error';
         expression = '';
       }
     }
+
+    function applyFunc(func) {
+      let val = expression || '0';
+      try {
+        let num = parseFloat(val);
+        if (isNaN(num)) throw "Invalid";
+        let result = 0;
+        switch(func) {
+          case 'sqrt': result = Math.sqrt(num); break;
+          case 'sin': result = Math.sin(num * Math.PI / 180); break;
+          case 'cos': result = Math.cos(num * Math.PI / 180); break;
+          case 'tan': result = Math.tan(num * Math.PI / 180); break;
+          case 'log': result = Math.log10(num); break;
+        }
+        result = +result.toFixed(8);
+        historyList.unshift(`${func}(${val}) = <strong>${result}</strong>`);
+        display.textContent = result;
+        history.innerHTML = historyList.slice(0, 5).join('<br>');
+        expression = result.toString();
+      } catch {
+        display.textContent = 'Error';
+        expression = '';
+      }
+    }
+
     function updateClock() {
       const now = new Date();
       const time = now.toLocaleTimeString();
@@ -175,6 +258,7 @@
     }
     setInterval(updateClock, 1000);
     updateClock();
+
     const colors = ['#00f0ff', '#ff00cc', '#00ff99', '#ffaa00', '#ff4444'];
     let currentColor = 0;
     const toggle = document.getElementById('colorToggle');
