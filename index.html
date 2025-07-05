@@ -128,8 +128,10 @@
     }
 
     .toggle-container {
-      text-align: right;
+      display: flex;
+      justify-content: space-between;
       margin-bottom: 10px;
+      align-items: center;
     }
 
     .toggle-multi {
@@ -157,6 +159,14 @@
     .toggle-multi:checked::before {
       left: 22px;
     }
+
+    .clear-history-btn {
+      background: transparent;
+      color: var(--glow-color);
+      font-size: 0.9em;
+      border: none;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -167,17 +177,18 @@
     </div>
     <div class="toggle-container">
       <input type="checkbox" id="colorToggle" class="toggle-multi" />
+      <button class="clear-history-btn" onclick="clearHistory()">🗑 Clear History</button>
     </div>
     <div class="display" id="display"></div>
     <div class="buttons">
       <button onclick="press('7')">7</button>
       <button onclick="press('8')">8</button>
       <button onclick="press('9')">9</button>
-      <button onclick="press('/')">/</button>
+      <button onclick="press('÷')">÷</button>
       <button onclick="press('4')">4</button>
       <button onclick="press('5')">5</button>
       <button onclick="press('6')">6</button>
-      <button onclick="press('*')">*</button>
+      <button onclick="press('×')">×</button>
       <button onclick="press('1')">1</button>
       <button onclick="press('2')">2</button>
       <button onclick="press('3')">3</button>
@@ -194,9 +205,14 @@
       <button onclick="applyFunc('cos')">cos</button>
       <button onclick="applyFunc('tan')">tan</button>
       <button onclick="applyFunc('log')">log</button>
+      <button onclick="memAdd()">M+</button>
+      <button onclick="memSub()">M-</button>
+      <button onclick="memRecall()">MR</button>
+      <button onclick="memClear()">MC</button>
     </div>
     <div class="history" id="history"></div>
     <div class="powered-by">⚡ Powered by <span>9shAd</span></div>
+    <audio id="clickSound" src="https://assets.mixkit.co/sfx/download/mixkit-click-melodic-tone-1129.mp3"></audio>
   </div>
 
   <script>
@@ -204,25 +220,46 @@
     let history = document.getElementById('history');
     let expression = '';
     let historyList = [];
+    let memory = 0;
+    let clickSound = document.getElementById("clickSound");
+
+    function playSound() {
+      clickSound.currentTime = 0;
+      clickSound.play();
+    }
 
     function press(val) {
+      playSound();
       expression += val;
       display.textContent = expression;
     }
 
     function clearDisplay() {
+      playSound();
       expression = '';
       display.textContent = '';
     }
 
     function backspace() {
+      playSound();
       expression = expression.slice(0, -1);
       display.textContent = expression;
     }
 
+    function clearHistory() {
+      historyList = [];
+      history.innerHTML = '';
+    }
+
+    function replaceSymbols(exp) {
+      return exp.replace(/×/g, '*').replace(/÷/g, '/');
+    }
+
     function calculate() {
       try {
-        let fixedExp = expression.replace(/(\d+(?:\.\d+)?)([-+])(\d+(?:\.\d+)?)%/g, (_, num1, op, num2) => {
+        playSound();
+        let fixedExp = replaceSymbols(expression);
+        fixedExp = fixedExp.replace(/(\d+(?:\.\d+)?)([-+])(\d+(?:\.\d+)?)%/g, (_, num1, op, num2) => {
           let base = parseFloat(num1);
           let percent = (base * parseFloat(num2)) / 100;
           return `${base}${op}${percent}`;
@@ -231,10 +268,10 @@
 
         let result = eval(fixedExp);
         result = +result.toFixed(8);
-        display.textContent = result;
         historyList.unshift(`${expression} = <strong>${result}</strong>`);
         history.innerHTML = historyList.slice(0, 5).join('<br>');
         expression = result.toString();
+        display.textContent = result;
       } catch {
         display.textContent = 'Error';
         expression = '';
@@ -242,6 +279,7 @@
     }
 
     function applyFunc(func) {
+      playSound();
       let val = expression || '0';
       try {
         let num = parseFloat(val);
@@ -283,6 +321,27 @@
       document.documentElement.style.setProperty('--glow-color', colors[currentColor]);
       document.documentElement.style.setProperty('--text-color', colors[currentColor]);
     });
+
+    function memAdd() {
+      playSound();
+      memory += parseFloat(display.textContent) || 0;
+    }
+
+    function memSub() {
+      playSound();
+      memory -= parseFloat(display.textContent) || 0;
+    }
+
+    function memRecall() {
+      playSound();
+      expression += memory;
+      display.textContent = expression;
+    }
+
+    function memClear() {
+      playSound();
+      memory = 0;
+    }
   </script>
 </body>
 </html>
